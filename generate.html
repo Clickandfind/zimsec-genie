@@ -1,0 +1,27 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#006400"><link rel="manifest" href="manifest.json"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css"><script src="https://cdn.tailwindcss.com"></script><link rel="stylesheet" href="css/style.css"><title>Generate - ZIMSEC Genie</title></head><body>
+<div id="nav"></div>
+<main class="p-3 max-w-5xl mx-auto cols">
+<div class="card noprint">
+<label>Subject</label><select id="subject" class="in"><option value="Maths">Mathematics 4004</option><option value="Accounts">Accounts 4053</option><option value="Business">Business 4048</option></select>
+<label>Level</label><select id="level" class="in"><option>Form 1-2</option><option selected>Form 3-4</option><option>A-Level</option></select>
+<label>Topic</label><select id="topic" class="in"></select>
+<label>Paper type</label><select id="paper" class="in"><option>Paper 1</option><option>Paper 2</option><option>Class test</option></select>
+<label>Marks</label><input id="marks" class="in" type="number" min="2" max="50" value="10">
+<label>Variants (1-60)</label><input id="vars" class="in" type="number" min="1" max="60" value="1">
+<button class="btn w-full mb-2" onclick="run($('#vars').value)">Generate</button>
+<button class="btn2 w-full" onclick="run(60)">Generate 60 variants</button>
+</div>
+<div><div id="acts" class="hidden noprint flex flex-wrap gap-2 mb-3"><button class="btn2" onclick="save()">Save to Supabase</button><button class="btn2" onclick="pdf()">PDF</button><button class="btn2" onclick="print()">Print</button><button class="btn2" onclick="copy()">Copy</button></div>
+<div id="out"><p class="text-gray-500">Choose a topic and press Generate.</p></div></div>
+</main><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script><script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script><script src="js/supabase.js"></script><script src="js/app.js"></script><script src="js/generator.js"></script>
+<script>
+nav();const V=i=>$('#'+i).value,ld=()=>fillTopics($('#topic'),V('subject'),V('level'));
+['subject','level'].forEach(i=>$('#'+i).onchange=ld);ld();let cur=[];
+function run(n){const t=$('#topic').selectedOptions[0];if(!t)return toast('No topics loaded');n=Math.min(60,Math.max(1,+n||1));
+cur=Gen.variants({subject:V('subject'),level:V('level'),code:t.value,topic:t.dataset.t,type:V('paper'),marks:V('marks')},n);
+$('#out').innerHTML=cur.map((x,i)=>'<div class="card"><span class="tag">'+x.code+'</span> <b>'+x.topic+'</b><div class="text-xs text-gray-600">'+x.type+' - '+x.marks+' marks - Variant '+(i+1)+'</div><div class="mt-2">'+x.q+'</div><div class="memo"><b>MEMO</b>'+x.memo+'</div></div>').join('');
+if(V('subject')=='Maths')math($('#out'));$('#acts').classList.remove('hidden')}
+async function save(){const r=await Promise.all(cur.map(x=>DB.saveQuestion(x)));toast(r.includes('offline')?'Saved offline - will sync':'Saved to Supabase')}
+function pdf(){PDF.start();cur.forEach((x,i)=>{PDF.text('ZIMSEC Genie | '+x.code+' '+x.topic+' | Variant '+(i+1)+' | '+x.marks+' marks',11,true);PDF.html(x.q);PDF.text('MEMO',10,true);PDF.html(x.memo);PDF.y+=6});PDF.save('zimsec-genie.pdf')}
+function copy(){navigator.clipboard.writeText(cur.map(x=>x.code+' '+x.topic+'\n'+plain(x.q)+'\nMEMO\n'+plain(x.memo)).join('\n\n')).then(()=>toast('Copied'))}
+</script></body></html>
