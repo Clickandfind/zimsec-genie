@@ -1,0 +1,78 @@
+-- ZIMSEC Genie schema. Run once in Supabase > SQL Editor.
+create extension if not exists pgcrypto;
+create table if not exists syllabi(id uuid primary key default gen_random_uuid(),subject text not null,level text not null default 'Form 3-4',code text unique not null,topic text not null,objective text);
+create table if not exists teachers(id uuid primary key default gen_random_uuid(),phone text unique not null,created_at timestamptz default now());
+create table if not exists questions_log(id uuid primary key default gen_random_uuid(),teacher_phone text,subject text,level text,code text,topic text,paper_type text,marks int,question_html text,memo_html text,seed bigint,created_at timestamptz default now());
+create table if not exists schemes(id uuid primary key default gen_random_uuid(),teacher_phone text,subject text,form text,term text,rows jsonb,created_at timestamptz default now());
+alter table syllabi enable row level security;alter table teachers enable row level security;alter table questions_log enable row level security;alter table schemes enable row level security;
+drop policy if exists p_syl on syllabi;create policy p_syl on syllabi for select using (true);
+drop policy if exists p_t on teachers;create policy p_t on teachers for all using (true) with check (true);
+drop policy if exists p_q on questions_log;create policy p_q on questions_log for all using (true) with check (true);
+drop policy if exists p_s on schemes;create policy p_s on schemes for all using (true) with check (true);
+insert into syllabi(subject,level,code,topic,objective) values
+('Maths','Form 3-4','4004-1.1','Number and Numeration','Learners should be able to define, explain and apply number and numeration in examination-type questions.'),
+('Maths','Form 3-4','4004-1.2','Ratio, Rate and Proportion','Learners should be able to define, explain and apply ratio, rate and proportion in examination-type questions.'),
+('Maths','Form 3-4','4004-1.3','Percentages and Consumer Arithmetic','Learners should be able to define, explain and apply percentages and consumer arithmetic in examination-type questions.'),
+('Maths','Form 3-4','4004-1.4','Indices and Standard Form','Learners should be able to define, explain and apply indices and standard form in examination-type questions.'),
+('Maths','Form 3-4','4004-1.5','Sets','Learners should be able to define, explain and apply sets in examination-type questions.'),
+('Maths','Form 3-4','4004-2.1','Algebraic Expressions and Factorisation','Learners should be able to define, explain and apply algebraic expressions and factorisation in examination-type questions.'),
+('Maths','Form 3-4','4004-2.2','Linear Equations and Inequalities','Learners should be able to define, explain and apply linear equations and inequalities in examination-type questions.'),
+('Maths','Form 3-4','4004-2.3','Quadratic Equations','Learners should be able to define, explain and apply quadratic equations in examination-type questions.'),
+('Maths','Form 3-4','4004-2.4','Simultaneous Equations','Learners should be able to define, explain and apply simultaneous equations in examination-type questions.'),
+('Maths','Form 3-4','4004-2.5','Variation','Learners should be able to define, explain and apply variation in examination-type questions.'),
+('Maths','Form 3-4','4004-2.6','Sequences and Series','Learners should be able to define, explain and apply sequences and series in examination-type questions.'),
+('Maths','Form 3-4','4004-2.7','Functions and Graphs','Learners should be able to define, explain and apply functions and graphs in examination-type questions.'),
+('Maths','Form 3-4','4004-3.1','Mensuration','Learners should be able to define, explain and apply mensuration in examination-type questions.'),
+('Maths','Form 3-4','4004-3.2','Geometry and Bearings','Learners should be able to define, explain and apply geometry and bearings in examination-type questions.'),
+('Maths','Form 3-4','4004-3.3','Circle Properties','Learners should be able to define, explain and apply circle properties in examination-type questions.'),
+('Maths','Form 3-4','4004-3.4','Transformation Geometry','Learners should be able to define, explain and apply transformation geometry in examination-type questions.'),
+('Maths','Form 3-4','4004-3.5','Trigonometry','Learners should be able to define, explain and apply trigonometry in examination-type questions.'),
+('Maths','Form 3-4','4004-3.6','Vectors','Learners should be able to define, explain and apply vectors in examination-type questions.'),
+('Maths','Form 3-4','4004-3.7','Matrices','Learners should be able to define, explain and apply matrices in examination-type questions.'),
+('Maths','Form 3-4','4004-4.1','Statistics and Probability','Learners should be able to define, explain and apply statistics and probability in examination-type questions.'),
+('Accounts','Form 3-4','4053-1.1','Nature and Purpose of Accounting','Learners should be able to define, explain and apply nature and purpose of accounting in examination-type questions.'),
+('Accounts','Form 3-4','4053-1.2','Accounting Concepts and Conventions','Learners should be able to define, explain and apply accounting concepts and conventions in examination-type questions.'),
+('Accounts','Form 3-4','4053-1.3','Source Documents','Learners should be able to define, explain and apply source documents in examination-type questions.'),
+('Accounts','Form 3-4','4053-2.1','Books of Original Entry (Journals)','Learners should be able to define, explain and apply books of original entry (journals) in examination-type questions.'),
+('Accounts','Form 3-4','4053-2.2','Cash Book and Petty Cash','Learners should be able to define, explain and apply cash book and petty cash in examination-type questions.'),
+('Accounts','Form 3-4','4053-2.3','Double Entry Bookkeeping','Learners should be able to define, explain and apply double entry bookkeeping in examination-type questions.'),
+('Accounts','Form 3-4','4053-3.1','Ledger Accounts','Learners should be able to define, explain and apply ledger accounts in examination-type questions.'),
+('Accounts','Form 3-4','4053-3.2.1','Trial Balance','Learners should be able to define, explain and apply trial balance in examination-type questions.'),
+('Accounts','Form 3-4','4053-3.2.2','Correction of Errors and Suspense Accounts','Learners should be able to define, explain and apply correction of errors and suspense accounts in examination-type questions.'),
+('Accounts','Form 3-4','4053-3.3','Bank Reconciliation Statements','Learners should be able to define, explain and apply bank reconciliation statements in examination-type questions.'),
+('Accounts','Form 3-4','4053-4.1','Final Accounts of Sole Traders','Learners should be able to define, explain and apply final accounts of sole traders in examination-type questions.'),
+('Accounts','Form 3-4','4053-4.2','Adjustments to Final Accounts','Learners should be able to define, explain and apply adjustments to final accounts in examination-type questions.'),
+('Accounts','Form 3-4','4053-4.3','Depreciation of Non-Current Assets','Learners should be able to define, explain and apply depreciation of non-current assets in examination-type questions.'),
+('Accounts','Form 3-4','4053-4.4','Bad Debts and Provision for Doubtful Debts','Learners should be able to define, explain and apply bad debts and provision for doubtful debts in examination-type questions.'),
+('Accounts','Form 3-4','4053-4.5','Disposal of Non-Current Assets','Learners should be able to define, explain and apply disposal of non-current assets in examination-type questions.'),
+('Accounts','Form 3-4','4053-5.1','Manufacturing Accounts','Learners should be able to define, explain and apply manufacturing accounts in examination-type questions.'),
+('Accounts','Form 3-4','4053-5.2','Partnership Accounts: Appropriation','Learners should be able to define, explain and apply partnership accounts: appropriation in examination-type questions.'),
+('Accounts','Form 3-4','4053-5.3','Partnership Accounts: Capital and Current Accounts','Learners should be able to define, explain and apply partnership accounts: capital and current accounts in examination-type questions.'),
+('Accounts','Form 3-4','4053-5.4','Partnership Changes (Admission and Retirement)','Learners should be able to define, explain and apply partnership changes (admission and retirement) in examination-type questions.'),
+('Accounts','Form 3-4','4053-6.1','Accounts of Clubs and Societies','Learners should be able to define, explain and apply accounts of clubs and societies in examination-type questions.'),
+('Accounts','Form 3-4','4053-6.2','Incomplete Records','Learners should be able to define, explain and apply incomplete records in examination-type questions.'),
+('Accounts','Form 3-4','4053-6.3','Control Accounts','Learners should be able to define, explain and apply control accounts in examination-type questions.'),
+('Accounts','Form 3-4','4053-7.1','Limited Company Accounts','Learners should be able to define, explain and apply limited company accounts in examination-type questions.'),
+('Accounts','Form 3-4','4053-7.2','Interpretation of Accounts: Ratios','Learners should be able to define, explain and apply interpretation of accounts: ratios in examination-type questions.'),
+('Accounts','Form 3-4','4053-7.3','Inventory Valuation','Learners should be able to define, explain and apply inventory valuation in examination-type questions.'),
+('Business','Form 3-4','4048-1.1','Nature of Business Enterprise','Learners should be able to define, explain and apply nature of business enterprise in examination-type questions.'),
+('Business','Form 3-4','4048-1.2','Entrepreneurship','Learners should be able to define, explain and apply entrepreneurship in examination-type questions.'),
+('Business','Form 3-4','4048-1.3','Forms of Business Ownership','Learners should be able to define, explain and apply forms of business ownership in examination-type questions.'),
+('Business','Form 3-4','4048-1.4','Business Objectives','Learners should be able to define, explain and apply business objectives in examination-type questions.'),
+('Business','Form 3-4','4048-2.1','Business Environment','Learners should be able to define, explain and apply business environment in examination-type questions.'),
+('Business','Form 3-4','4048-2.2','Business Location','Learners should be able to define, explain and apply business location in examination-type questions.'),
+('Business','Form 3-4','4048-2.3','Business Planning','Learners should be able to define, explain and apply business planning in examination-type questions.'),
+('Business','Form 3-4','4048-3.1','Marketing Mix','Learners should be able to define, explain and apply marketing mix in examination-type questions.'),
+('Business','Form 3-4','4048-3.2','Market Research','Learners should be able to define, explain and apply market research in examination-type questions.'),
+('Business','Form 3-4','4048-3.3','Production','Learners should be able to define, explain and apply production in examination-type questions.'),
+('Business','Form 3-4','4048-3.4','Quality Control','Learners should be able to define, explain and apply quality control in examination-type questions.'),
+('Business','Form 3-4','4048-4.1','Human Resources','Learners should be able to define, explain and apply human resources in examination-type questions.'),
+('Business','Form 3-4','4048-4.2','Motivation and Leadership','Learners should be able to define, explain and apply motivation and leadership in examination-type questions.'),
+('Business','Form 3-4','4048-4.3','Trade Unions and Labour Relations','Learners should be able to define, explain and apply trade unions and labour relations in examination-type questions.'),
+('Business','Form 3-4','4048-5.1','Sources of Finance','Learners should be able to define, explain and apply sources of finance in examination-type questions.'),
+('Business','Form 3-4','4048-5.2','Costs, Revenue and Break-even','Learners should be able to define, explain and apply costs, revenue and break-even in examination-type questions.'),
+('Business','Form 3-4','4048-5.3','Business Records and Documents','Learners should be able to define, explain and apply business records and documents in examination-type questions.'),
+('Business','Form 3-4','4048-6.1','Banking and Insurance','Learners should be able to define, explain and apply banking and insurance in examination-type questions.'),
+('Business','Form 3-4','4048-6.2','Transport, Communication and Trade','Learners should be able to define, explain and apply transport, communication and trade in examination-type questions.'),
+('Business','Form 3-4','4048-6.3','Business Ethics and Social Responsibility','Learners should be able to define, explain and apply business ethics and social responsibility in examination-type questions.')
+on conflict (code) do nothing;
