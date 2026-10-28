@@ -1,0 +1,28 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#006400"><link rel="manifest" href="manifest.json"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css"><script src="https://cdn.tailwindcss.com"></script><link rel="stylesheet" href="css/style.css"><title>Schemes - ZIMSEC Genie</title></head><body>
+<div id="nav"></div>
+<main class="p-3 max-w-6xl mx-auto">
+<div class="card noprint grid grid-cols-1 md:grid-cols-4 gap-2"><div><label>Subject</label><select id="subject" class="in"><option value="Maths">Mathematics 4004</option><option value="Accounts">Accounts 4053</option><option value="Business">Business 4048</option></select></div>
+<div><label>Form</label><select id="form" class="in"><option>Form 1</option><option>Form 2</option><option>Form 3</option><option selected>Form 4</option><option>Lower 6</option><option>Upper 6</option></select></div>
+<div><label>Term</label><select id="term" class="in"><option value="1">Term 1</option><option value="2">Term 2</option><option value="3">Term 3</option></select></div>
+<div class="flex items-end"><button class="btn w-full mb-2" onclick="gen()">Generate scheme</button></div></div>
+<div id="acts" class="hidden noprint flex flex-wrap gap-2 mb-3"><button class="btn2" onclick="save()">Save to Supabase</button><button class="btn2" onclick="pdf()">Export PDF</button><button class="btn2" onclick="print()">Print</button></div>
+<p class="text-xs text-gray-600 noprint">Tap any cell to edit it.</p>
+<div class="sch"><table id="tb"></table></div>
+<div class="card noprint mt-4"><b>My saved schemes</b><div id="saved" class="mt-2"></div></div>
+</main><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script><script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script><script src="js/supabase.js"></script><script src="js/app.js"></script><script src="js/generator.js"></script>
+<script>
+nav();const H=['Week','Topic','Code','Objectives','Methods / Activities','Resources','Assessment'];
+const ME={Maths:'Teacher demonstration; worked examples; group problem solving',Accounts:'Demonstration of formats; group exercises; practical drills',Business:'Discussion; case studies; role play; field visits'},
+RE={Maths:'Syllabus, textbook, mathematical set, calculator',Accounts:'Syllabus, textbook, ruled paper, calculator',Business:'Syllabus, textbook, newspapers, case studies'};let rows=[];
+const read=()=>[...document.querySelectorAll('#tb tr')].slice(1).map(tr=>[...tr.cells].map(c=>c.innerText.trim()));
+function draw(){$('#tb').innerHTML='<tr>'+H.map(h=>'<th>'+h+'</th>').join('')+'</tr>'+rows.map(x=>'<tr>'+x.map(c=>'<td contenteditable>'+c+'</td>').join('')+'</tr>').join('');$('#acts').classList.remove('hidden')}
+async function gen(){const s=$('#subject').value,t=+$('#term').value,all=await DB.getTopics(s,''),per=Math.ceil(all.length/3),l=all.slice((t-1)*per,t*per),n=l.length;
+rows=l.map((x,i)=>{const a=Math.floor(i*13/n)+1,b=Math.max(a,Math.floor((i+1)*13/n));return[a==b?''+a:a+'-'+b,x.topic,x.code,x.objective,ME[s],RE[s],'Class exercise; oral questions; topic test']});draw()}
+async function save(){const r=await DB.saveScheme({subject:$('#subject').value,form:$('#form').value,term:$('#term').value,rows:read()});toast(r=='offline'?'Saved offline - will sync':'Saved to Supabase');list()}
+async function list(){const l=await DB.getSchemes();$('#saved').innerHTML=l.length?l.map((x,i)=>'<button class="btn2 mr-2 mb-2" onclick="load('+i+')">'+x.subject+' '+x.form+' T'+x.term+'</button>').join(''):'<span class="text-sm text-gray-500">None yet</span>';window._l=l}
+function load(i){const x=window._l[i];$('#subject').value=x.subject;$('#form').value=x.form;$('#term').value=x.term;rows=x.rows;draw()}
+function pdf(){PDF.start(true);const d=PDF.d,W=[14,45,22,60,45,40,41];PDF.text('MoPSE Scheme of Work - '+$('#subject').selectedOptions[0].text+' - '+$('#form').value+' - Term '+$('#term').value,12,true);PDF.y+=2;
+const row=(r,b)=>{const c=r.map((t,i)=>d.splitTextToSize(String(t),W[i]-2)),h=Math.max(...c.map(z=>z.length))*3.6+2;if(PDF.y+h>195){d.addPage();PDF.y=15}let x=15;d.setFont('helvetica',b?'bold':'normal');d.setFontSize(8);c.forEach((z,i)=>{d.rect(x,PDF.y,W[i],h);d.text(z,x+1,PDF.y+4);x+=W[i]});PDF.y+=h};
+row(H,1);read().forEach(r=>row(r,0));PDF.save('scheme-of-work.pdf')}
+list();
+</script></body></html>

@@ -1,0 +1,23 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#006400"><link rel="manifest" href="manifest.json"><link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css"><script src="https://cdn.tailwindcss.com"></script><link rel="stylesheet" href="css/style.css"><title>Exam - ZIMSEC Genie</title></head><body>
+<div id="nav"></div>
+<main class="p-3 max-w-5xl mx-auto cols">
+<div class="card noprint"><label>Subject</label><select id="subject" class="in"><option value="Maths">Mathematics 4004</option><option value="Accounts">Accounts 4053</option><option value="Business">Business 4048</option></select>
+<label>Pick exactly 5 topics</label><div id="tps" class="text-sm mb-2" style="max-height:260px;overflow:auto"></div>
+<label>Total marks (Paper 1 = 40%, Paper 2 = 60%)</label><input id="total" class="in" type="number" min="20" value="100">
+<button class="btn w-full" onclick="build()">Build exam</button></div>
+<div><div id="acts" class="hidden noprint flex flex-wrap gap-2 mb-3"><button class="btn2" onclick="pdfP()">Papers PDF</button><button class="btn2" onclick="pdfS()">Marking scheme PDF</button><button class="btn2" onclick="print()">Print</button></div><div id="out"><p class="text-gray-500">Select topics and build.</p></div></div>
+</main><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script><script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script><script src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script><script src="js/supabase.js"></script><script src="js/app.js"></script><script src="js/generator.js"></script>
+<script>
+nav();const LB={Maths:'MATHEMATICS 4004',Accounts:'PRINCIPLES OF ACCOUNTS 4053',Business:'BUSINESS ENTERPRISE SKILLS 4048'},TM={1:'1 hour 30 minutes',2:'2 hours 30 minutes'};let E=null;
+const ld=()=>DB.getTopics($('#subject').value,'').then(l=>{$('#tps').innerHTML=l.map(t=>'<label class="block py-1"><input type="checkbox" class="tp" value="'+t.code+'" data-t="'+t.topic+'"> '+t.code+' '+t.topic+'</label>').join('')});
+$('#subject').onchange=ld;ld();
+function build(){const ch=[...document.querySelectorAll('.tp:checked')];if(ch.length!=5)return toast('Select exactly 5 topics');
+const tm=+$('#total').value,p1=Math.round(tm*.4),p2=tm-p1,sub=$('#subject').value,sd=Date.now()%100000;
+const mk=(type,P,off)=>ch.map((c,i)=>Gen.make({subject:sub,level:'Form 3-4',code:c.value,topic:c.dataset.t,type,marks:i<4?Math.floor(P/5):P-4*Math.floor(P/5),seed:sd+off+i*131}));
+E={sub,P:[[1,p1,mk('Paper 1',p1,1)],[2,p2,mk('Paper 2',p2,5000)]]};
+const cov=(n,m)=>'<div class="card text-center"><b>ZIMBABWE SCHOOL EXAMINATIONS COUNCIL</b><br>Ordinary Level<h2 class="text-xl font-bold">'+LB[sub]+'</h2><b>Paper '+n+'</b><br>Time: '+TM[n]+' - Marks: '+m+'<p class="text-left text-sm mt-2">Candidate name ____________ Centre No. _____ Candidate No. _____<br>INSTRUCTIONS: Answer ALL questions. Show all working. The number of marks is given in brackets [ ].</p></div>';
+$('#out').innerHTML=E.P.map(([n,m,qs])=>cov(n,m)+qs.map((x,i)=>'<div class="card"><b>'+(i+1)+'.</b> <span class="tag">'+x.code+'</span>'+x.q+'</div>').join('')).join('')+'<h3 class="font-bold mt-4">COMBINED MARKING SCHEME</h3>'+E.P.map(([n,m,qs])=>'<div class="card"><b>Paper '+n+'</b>'+qs.map((x,i)=>'<div class="memo"><b>Q'+(i+1)+' ('+x.code+')</b>'+x.memo+'</div>').join('')+'</div>').join('');
+if(sub=='Maths')math($('#out'));$('#acts').classList.remove('hidden')}
+function pdfP(){PDF.start();E.P.forEach(([n,m,qs],k)=>{if(k)PDF.page();PDF.text('ZIMBABWE SCHOOL EXAMINATIONS COUNCIL',14,true,true);PDF.text('Ordinary Level',11,false,true);PDF.text(LB[E.sub],16,true,true);PDF.text('Paper '+n,13,true,true);PDF.text('Time: '+TM[n]+'    Marks: '+m,11,false,true);PDF.y+=8;PDF.text('Candidate name: ______________________   Centre No: ______   Candidate No: ______',10);PDF.y+=4;PDF.text('INSTRUCTIONS: Answer ALL questions. Show all working. The number of marks is given in brackets [ ].',10);PDF.page();qs.forEach((x,i)=>{PDF.text((i+1)+'. ['+x.code+']',10,true);PDF.html(x.q);PDF.y+=5})});PDF.save('exam-papers.pdf')}
+function pdfS(){PDF.start();PDF.text('MARKING SCHEME - '+LB[E.sub],14,true,true);E.P.forEach(([n,m,qs])=>{PDF.y+=4;PDF.text('Paper '+n+' ('+m+' marks)',12,true);qs.forEach((x,i)=>{PDF.text('Q'+(i+1)+' ['+x.code+']',10,true);PDF.html(x.memo);PDF.y+=3})});PDF.save('marking-scheme.pdf')}
+</script></body></html>
