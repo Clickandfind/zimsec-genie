@@ -1,15 +1,17 @@
-// Set this to the deployed Cloudflare Worker URL ending in /api/ask.
+// Public URL only. Never place API keys in browser code.
 const GENIE_AI_ENDPOINT = "PASTE_YOUR_CLOUDFLARE_WORKER_URL_HERE/api/ask";
 nav();
 const questionEl = document.querySelector("#question");
 const askBtn = document.querySelector("#ask");
+const clearBtn = document.querySelector("#clear");
 const answerCard = document.querySelector("#answerCard");
 const answerEl = document.querySelector("#answer");
 const statusEl = document.querySelector("#status");
+const pdfBtn = document.querySelector("#downloadPdf");
 askBtn.addEventListener("click", askGenie);
-document.querySelector("#clear").addEventListener("click", () => {
+clearBtn.addEventListener("click", () => {
   questionEl.value = ""; answerEl.textContent = ""; statusEl.textContent = "";
-  answerCard.classList.add("hidden"); questionEl.focus();
+  answerCard.classList.add("hidden"); pdfBtn.disabled = true; questionEl.focus();
 });
 questionEl.addEventListener("keydown", e => {
   if ((e.ctrlKey || e.metaKey) && e.key === "Enter") askGenie();
@@ -30,10 +32,12 @@ async function askGenie() {
       method: "POST", headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ question, subject: document.querySelector("#subject").value, level: document.querySelector("#level").value })
     });
-    const data = await response.json();
+    const data = await response.json().catch(() => ({}));
     if (!response.ok) throw new Error(data.error || "The AI service is temporarily unavailable.");
+    if (!data.answer) throw new Error("The AI service returned an empty answer.");
     answerEl.textContent = data.answer;
     statusEl.textContent = "AI-generated answer. Verify syllabus-specific details before using in class.";
+    pdfBtn.disabled = false;
   } catch (error) {
     answerEl.textContent = error.message || "Could not reach Genie. Please try again.";
     statusEl.textContent = "Connection or service error";
@@ -41,3 +45,17 @@ async function askGenie() {
     askBtn.disabled = false; askBtn.textContent = "Ask Genie";
   }
 }
+pdfBtn.addEventListener("click", () => {
+  if (!answerEl.textContent || !window.jspdf) return;
+  const doc = new window.jspdf.jsPDF({unit:"mm",format:"a4"});
+  doc.setFont("helvetica","bold"); doc.setFontSize(16);
+  doc.text("ZIMSEC Genie - Teaching Assistant", 15, 18);
+  doc.setFont("helvetica","normal"); doc.setFontSize(11);
+  const lines = doc.splitTextToSize(answerEl.textContent, 180);
+  let y = 28;
+  for (const line of lines) {
+    if (y > 280) { doc.addPage(); y = 18; }
+    doc.text(line, 15, y); y += 5.5;
+  }
+  doc.save("zimsec-genie-ai-answer.pdf");
+});
