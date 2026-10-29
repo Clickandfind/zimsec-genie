@@ -1,0 +1,14 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#006400"><link rel="manifest" href="manifest.json"><script src="https://cdn.tailwindcss.com"></script><link rel="stylesheet" href="css/style.css"><title>Genie AI - ZIMSEC Genie</title></head>
+<body><div id="nav"></div><main class="p-3 max-w-3xl mx-auto">
+  <section class="card"><span class="tag">TEACHING ASSISTANT</span><h1 class="text-2xl font-bold mt-2" style="color:#006400">Ask Genie AI</h1><p class="text-sm text-gray-600 mt-1">Plan lessons, simplify concepts, create classroom activities and get step-by-step explanations.</p></section>
+  <section class="card">
+    <label for="subject">Subject</label><select id="subject" class="in"><option>General teaching</option><option>Mathematics 4004</option><option>Principles of Accounts 4053</option><option>Business Enterprise Skills 4048</option><option>Science</option><option>English</option></select>
+    <label for="level">Class / level</label><select id="level" class="in"><option>Primary</option><option>Form 1-2</option><option selected>Form 3-4</option><option>Lower 6</option><option>Upper 6</option><option>Teacher professional support</option></select>
+    <label for="question">What do you need help with?</label><textarea id="question" class="in" rows="5" maxlength="5000" placeholder="Example: Explain simultaneous equations in simple steps and give three class exercises with answers."></textarea>
+    <div class="flex gap-2 flex-wrap"><button id="ask" class="btn">Ask Genie</button><button id="clear" class="btn2" type="button">Clear</button></div>
+    <p class="text-xs text-gray-500 mt-3">Do not enter learners' private or sensitive information. Check important syllabus details against the official syllabus and your school resources.</p>
+  </section>
+  <section id="answerCard" class="card hidden"><h2 class="font-bold mb-2" style="color:#006400">Genie's answer</h2><div id="answer" class="whitespace-pre-wrap"></div><p id="status" class="text-xs text-gray-500 mt-3"></p></section>
+</main>
+<script src="js/app.js"></script><script src="js/ai.js"></script></body></html>
