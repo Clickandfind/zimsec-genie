@@ -1,0 +1,6 @@
+name = "zimsec-genie-ai"
+main = "worker.js"
+compatibility_date = "2026-10-29"
+
+[ai]
+binding = "AI"
